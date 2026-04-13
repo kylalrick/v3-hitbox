@@ -1,0 +1,153 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local GROUP_ID = 11158043705 
+local STAFF_MIN_RANK = 2 
+
+local function animateColor(obj, color)
+    TweenService:Create(obj, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundColor3 = color}):Play()
+end
+
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 320, 0, 520) -- Légèrement plus large pour le gros texte
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -260)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.Active = true
+MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(60, 60, 70)
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 60)
+Title.Text = "BADDIES HITBOX ELITE"
+Title.Font = Enum.Font.GothamBold
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 22 -- TEXTE TITRE PLUS GRAND
+Title.BackgroundTransparency = 1
+
+local function createBtn(name, pos)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0, 280, 0, 55)
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+    btn.Text = name .. ": OFF"
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextSize = 18 -- TEXTE BOUTON PLUS GRAND
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+    return btn
+end
+
+local HitboxBtn = createBtn("Hitbox", UDim2.new(0, 20, 0, 70))
+local VisualBtn = createBtn("Visuals", UDim2.new(0, 20, 0, 135))
+local StaffBtn = createBtn("Staff Detect (Kick)", UDim2.new(0, 20, 0, 200))
+
+local function createSlider(name, pos, defaultFill)
+    local label = Instance.new("TextLabel", MainFrame)
+    label.Size = UDim2.new(1, 0, 0, 30)
+    label.Position = pos
+    label.Text = name
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 20 -- TEXTE SLIDER PLUS GRAND
+    label.BackgroundTransparency = 1
+    
+    local back = Instance.new("Frame", MainFrame)
+    back.Size = UDim2.new(0, 260, 0, 12)
+    back.Position = pos + UDim2.new(0, 30, 0, 40)
+    back.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    
+    local fill = Instance.new("Frame", back)
+    fill.Size = UDim2.new(defaultFill, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    
+    local ball = Instance.new("TextButton", fill)
+    ball.Size = UDim2.new(0, 24, 0, 24)
+    ball.Position = UDim2.new(1, -12, 0.5, -12)
+    ball.Text = ""
+    Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
+    
+    return label, back, fill, ball
+end
+
+local SizeLabel, SizeBack, SizeFill, SizeBall = createSlider("Taille : 15", UDim2.new(0, 0, 0, 280), 0.3)
+local TransLabel, TransBack, TransFill, TransBall = createSlider("Transparence : 0.7", UDim2.new(0, 0, 0, 370), 0.7)
+
+local _Active, _Visuals, _StaffDetect = false, false, false
+local _Size, _Trans = 15, 0.7
+local dragSize, dragTrans = false, false
+
+HitboxBtn.MouseButton1Click:Connect(function()
+    _Active = not _Active
+    HitboxBtn.Text = _Active and "Hitbox: ON" or "Hitbox: OFF"
+    animateColor(HitboxBtn, _Active and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(45, 45, 50))
+end)
+
+VisualBtn.MouseButton1Click:Connect(function()
+    _Visuals = not _Visuals
+    VisualBtn.Text = _Visuals and "Visuals: ON" or "Visuals: OFF"
+    animateColor(VisualBtn, _Visuals and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(45, 45, 50))
+end)
+
+StaffBtn.MouseButton1Click:Connect(function()
+    _StaffDetect = not _StaffDetect
+    StaffBtn.Text = _StaffDetect and "Staff Detect: ACTIVE" or "Staff Detect: OFF"
+    animateColor(StaffBtn, _StaffDetect and Color3.fromRGB(255, 100, 0) or Color3.fromRGB(45, 45, 50))
+end)
+
+local function handleSlider(input, back, fill, min, max, isTrans)
+    local pos = math.clamp((input.Position.X - back.AbsolutePosition.X) / back.AbsoluteSize.X, 0, 1)
+    fill.Size = UDim2.new(pos, 0, 1, 0)
+    local val = min + (pos * (max - min))
+    if isTrans then _Trans = val TransLabel.Text = "Transparence : " .. string.format("%.1f", _Trans)
+    else _Size = math.floor(val) SizeLabel.Text = "Taille : " .. _Size end
+end
+
+SizeBall.MouseButton1Down:Connect(function() dragSize = true end)
+TransBall.MouseButton1Down:Connect(function() dragTrans = true end)
+UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragSize, dragTrans = false, false end end)
+UserInputService.InputChanged:Connect(function(i) 
+    if i.UserInputType == Enum.UserInputType.MouseMovement then 
+        if dragSize then handleSlider(i, SizeBack, SizeFill, 0, 50, false)
+        elseif dragTrans then handleSlider(i, TransBack, TransFill, 0, 1, true) end
+    end 
+end)
+
+local function checkStaff(player)
+    if not _StaffDetect or player == LocalPlayer then return end
+    task.spawn(function()
+        local success, rank = pcall(function() return player:GetRankInGroup(GROUP_ID) end)
+        if success and rank >= STAFF_MIN_RANK then
+            LocalPlayer:Kick("🛡️ STAFF DÉTECTÉ : " .. player.Name)
+        end
+    end)
+end
+
+Players.PlayerAdded:Connect(checkStaff)
+task.spawn(function() while true do if _StaffDetect then for _, p in pairs(Players:GetPlayers()) do checkStaff(p) end end task.wait(5) end end)
+
+-- ⚡ HEARTBEAT LOOP (AGIT SANS AUCUN DÉLAI)
+RunService.Heartbeat:Connect(function()
+    if _Active then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Size = Vector3.new(_Size, _Size, _Size)
+                    hrp.Transparency = _Visuals and _Trans or 1
+                    hrp.CanCollide = false
+                    hrp.CanTouch = true
+                    hrp.CanQuery = true
+                    if _Visuals then
+                        hrp.Color = Color3.fromRGB(0, 160, 255)
+                        hrp.Material = Enum.Material.Neon
+                    end
+                end
+            end
+        end
+    end
+end)
