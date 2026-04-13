@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Configuration Spécifique Baddies
 local GROUP_ID = 11158043705 
 local STAFF_MIN_RANK = 2 
 
@@ -11,76 +12,84 @@ local function animateColor(obj, color)
     TweenService:Create(obj, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundColor3 = color}):Play()
 end
 
+-- GUI Principal XL
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 320, 0, 520) -- Légèrement plus large pour le gros texte
-MainFrame.Position = UDim2.new(0.5, -160, 0.5, -260)
+MainFrame.Size = UDim2.new(0, 300, 0, 480)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -240)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
 Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(60, 60, 70)
 
 local Title = Instance.new("TextLabel", MainFrame)
-Title.Size = UDim2.new(1, 0, 0, 60)
+Title.Size = UDim2.new(1, 0, 0, 50)
 Title.Text = "BADDIES HITBOX ELITE"
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.new(1, 1, 1)
-Title.TextSize = 22 -- TEXTE TITRE PLUS GRAND
+Title.TextSize = 18
 Title.BackgroundTransparency = 1
 
+-- Boutons
 local function createBtn(name, pos)
     local btn = Instance.new("TextButton", MainFrame)
-    btn.Size = UDim2.new(0, 280, 0, 55)
+    btn.Size = UDim2.new(0, 260, 0, 50)
     btn.Position = pos
     btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
     btn.Text = name .. ": OFF"
-    btn.Font = Enum.Font.GothamBold
+    btn.Font = Enum.Font.GothamSemibold
     btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.TextSize = 18 -- TEXTE BOUTON PLUS GRAND
+    btn.TextSize = 15
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
     return btn
 end
 
-local HitboxBtn = createBtn("Hitbox", UDim2.new(0, 20, 0, 70))
-local VisualBtn = createBtn("Visuals", UDim2.new(0, 20, 0, 135))
-local StaffBtn = createBtn("Staff Detect (Kick)", UDim2.new(0, 20, 0, 200))
+local HitboxBtn = createBtn("Hitbox", UDim2.new(0, 20, 0, 60))
+local VisualBtn = createBtn("Visuals", UDim2.new(0, 20, 0, 120))
+local StaffBtn = createBtn("Staff Detect (Kick)", UDim2.new(0, 20, 0, 180))
 
+-- Sliders
 local function createSlider(name, pos, defaultFill)
     local label = Instance.new("TextLabel", MainFrame)
-    label.Size = UDim2.new(1, 0, 0, 30)
+    label.Size = UDim2.new(1, 0, 0, 25)
     label.Position = pos
     label.Text = name
     label.Font = Enum.Font.GothamBold
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.TextSize = 20 -- TEXTE SLIDER PLUS GRAND
+    label.TextSize = 18
     label.BackgroundTransparency = 1
     
     local back = Instance.new("Frame", MainFrame)
-    back.Size = UDim2.new(0, 260, 0, 12)
-    back.Position = pos + UDim2.new(0, 30, 0, 40)
+    back.Size = UDim2.new(0, 240, 0, 10)
+    back.Position = pos + UDim2.new(0, 30, 0, 35)
     back.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    Instance.new("UICorner", back)
     
     local fill = Instance.new("Frame", back)
     fill.Size = UDim2.new(defaultFill, 0, 1, 0)
     fill.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    Instance.new("UICorner", fill)
     
     local ball = Instance.new("TextButton", fill)
-    ball.Size = UDim2.new(0, 24, 0, 24)
-    ball.Position = UDim2.new(1, -12, 0.5, -12)
+    ball.Size = UDim2.new(0, 22, 0, 22)
+    ball.Position = UDim2.new(1, -11, 0.5, -11)
     ball.Text = ""
     Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
     
     return label, back, fill, ball
 end
 
-local SizeLabel, SizeBack, SizeFill, SizeBall = createSlider("Taille : 15", UDim2.new(0, 0, 0, 280), 0.3)
-local TransLabel, TransBack, TransFill, TransBall = createSlider("Transparence : 0.7", UDim2.new(0, 0, 0, 370), 0.7)
+local SizeLabel, SizeBack, SizeFill, SizeBall = createSlider("Taille : 15", UDim2.new(0, 0, 0, 250), 0.3)
+local TransLabel, TransBack, TransFill, TransBall = createSlider("Transparence : 0.7", UDim2.new(0, 0, 0, 335), 0.7)
 
+-- Variables
 local _Active, _Visuals, _StaffDetect = false, false, false
 local _Size, _Trans = 15, 0.7
 local dragSize, dragTrans = false, false
 
+-- Toggles
 HitboxBtn.MouseButton1Click:Connect(function()
     _Active = not _Active
     HitboxBtn.Text = _Active and "Hitbox: ON" or "Hitbox: OFF"
@@ -99,6 +108,7 @@ StaffBtn.MouseButton1Click:Connect(function()
     animateColor(StaffBtn, _StaffDetect and Color3.fromRGB(255, 100, 0) or Color3.fromRGB(45, 45, 50))
 end)
 
+-- Sliders logic
 local function handleSlider(input, back, fill, min, max, isTrans)
     local pos = math.clamp((input.Position.X - back.AbsolutePosition.X) / back.AbsoluteSize.X, 0, 1)
     fill.Size = UDim2.new(pos, 0, 1, 0)
@@ -117,35 +127,34 @@ UserInputService.InputChanged:Connect(function(i)
     end 
 end)
 
+-- DETECTION STAFF
 local function checkStaff(player)
     if not _StaffDetect or player == LocalPlayer then return end
-    task.spawn(function()
-        local success, rank = pcall(function() return player:GetRankInGroup(GROUP_ID) end)
-        if success and rank >= STAFF_MIN_RANK then
-            LocalPlayer:Kick("🛡️ STAFF DÉTECTÉ : " .. player.Name)
-        end
-    end)
+    local success, rank = pcall(function() return player:GetRankInGroup(GROUP_ID) end)
+    if success and rank >= STAFF_MIN_RANK then
+        LocalPlayer:Kick("🛡️ STAFF DETECTED: " .. player.Name)
+    end
 end
 
-Players.PlayerAdded:Connect(checkStaff)
-task.spawn(function() while true do if _StaffDetect then for _, p in pairs(Players:GetPlayers()) do checkStaff(p) end end task.wait(5) end end)
+Players.PlayerAdded:Connect(function(player) task.wait(2) checkStaff(player) end)
 
--- ⚡ HEARTBEAT LOOP (AGIT SANS AUCUN DÉLAI)
-RunService.Heartbeat:Connect(function()
+-- Main Loop MISE À JOUR (Correction Respawn)
+RunService.RenderStepped:Connect(function()
     if _Active then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character then
                 local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
+                local hum = p.Character:FindFirstChild("Humanoid")
+                
+                -- On vérifie que le joueur est en vie et que le HRP existe
+                if hrp and hum and hum.Health > 0 then
                     hrp.Size = Vector3.new(_Size, _Size, _Size)
                     hrp.Transparency = _Visuals and _Trans or 1
                     hrp.CanCollide = false
-                    hrp.CanTouch = true
-                    hrp.CanQuery = true
-                    if _Visuals then
-                        hrp.Color = Color3.fromRGB(0, 160, 255)
-                        hrp.Material = Enum.Material.Neon
-                    end
+                    hrp.CanTouch = true 
+                    hrp.CanQuery = true 
+                    hrp.Color = Color3.fromRGB(0, 160, 255)
+                    hrp.Material = Enum.Material.Neon
                 end
             end
         end
